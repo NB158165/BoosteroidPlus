@@ -1,0 +1,51 @@
+[versions]
+agp = "8.10.0-alpha08"
+kotlin = "2.0.21"
+coreKtx = "1.15.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+lifecycleRuntimeKtx = "2.6.1"
+activityCompose = "1.8.0"
+composeBom = "2024.09.00"
+imageToolboxLibs = "3.3.2"
+desugaring = "2.1.4"
+ksprefs = "2.4.1"
+xposed-legacy = "82"
+dexkit = "2.0.3"
+splashscreen = "1.0.1"
+composeIcons = "1.1.1"
+ktlint = "12.2.0"
+ktlintCompose = "0.0.26"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugaring" }
+toolbox-dynamicTheme = { module = "com.github.T8RIN.ImageToolboxLibs:dynamic-theme", version.ref = "imageToolboxLibs" }
+toolbox-systemuicontroller = { module = "com.github.T8RIN.ImageToolboxLibs:systemuicontroller", version.ref = "imageToolboxLibs" }
+toolbox-modalsheet = { module = "com.github.T8RIN.ImageToolboxLibs:modalsheet", version.ref = "imageToolboxLibs" }
+ksprefs = { module = "com.github.cioccarellia:ksprefs", version.ref = "ksprefs" }
+dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
+xposed-legacy = { group = "de.robv.android.xposed", name = "api", version.ref = "xposed-legacy" }
+androidx-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
+composeIcons = { module = "br.com.devsrsouza.compose.icons:tabler-icons", version.ref = "composeIcons" }
+ktlint-compose = { module = "com.twitter.compose.rules:ktlint", version.ref = "ktlintCompose" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

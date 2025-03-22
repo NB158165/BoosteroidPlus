@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Boosteroid+</string>
+
+    <string name="tweaks_warning_title">Use At Your Own Risk</string>
+    <string name="tweaks_warning_message">Enabling these optimization tweaks may violate the Boosteroid\'s terms of service. The developer is not responsible for any account restrictions, suspensions, or bans that may result from using these features. By proceeding, you acknowledge and accept all potential risks.</string>
+    <string name="action_ok">OK</string>
+    <string name="unlock_fps_title">FPS Unlocker</string>
+    <string name="unlock_fps_description">Removes streaming FPS restrictions and increases the cap to 120 FPS on supported devices</string>
+    <string name="unlock_bitrate_title">Bitrate Unlocker</string>
+    <string name="unlock_bitrate_description">Removes default bitrate limits to use the Boosteroid\'s maximum allowed quality</string>
+    <string name="resolution_title">Stream Resolution</string>
+    <string name="resolution_description">Set the desired resolution for streaming. Higher values provide better image quality but require more bandwidth</string>
+    <string name="aspect_ratio_title">Aspect Ratio</string>
+    <string name="aspect_ratio_description">Select the screen aspect ratio for streaming</string>
+    <string name="app_restart_required">Force-Stop Boosteroid to apply</string>
+
+    <string name="title_activity_crash">CrashActivity</string>
+    <string name="crash_title">Oops! The app crashed</string>
+    <string name="crash_description">We\'re sorry for the inconvenience. Please restart the app or report this issue to help us fix it.</string>
+    <string name="crash_restart_button">Restart App</string>
+    <string name="crash_report_button">Report Issue</string>
+    <string name="crash_show_details_button">Show Error Details</string>
+    <string name="crash_details_title">Error Details</string>
+    <string name="crash_stack_trace_label">Stack Trace</string>
+    <string name="crash_no_details">No error details available</string>
+    <string name="crash_copied_to_clipboard">Copied to clipboard</string>
+    <string name="crash_version_format">Boosteroid+ v%s</string>
+</resources>
