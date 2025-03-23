@@ -38,6 +38,7 @@ import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.AspectRatio
 import compose.icons.tablericons.Bolt
 import compose.icons.tablericons.DeviceDesktop
+import compose.icons.tablericons.Maximize
 import compose.icons.tablericons.WaveSawTool
 import dev.marcelsoftware.boosteroidplus.common.AppDialog
 import dev.marcelsoftware.boosteroidplus.common.AppDialogHeader
@@ -192,6 +193,8 @@ fun Options(
     val aspectRatioOptions = listOf(null) + ResolutionManager.AspectRatio.entries
     var aspectRatioIndex by rememberIntPreference(PrefKeys.ASPECT_RATIO, -1)
 
+    var extendIntoNotch by rememberBooleanPreference(PrefKeys.EXTEND_INTO_NOTCH, true)
+
     val selectedAspectRatio =
         remember(aspectRatioIndex) {
             if (aspectRatioIndex >= 0 && aspectRatioIndex < ResolutionManager.AspectRatio.entries.size) {
@@ -253,6 +256,25 @@ fun Options(
                     Icon(
                         imageVector = TablerIcons.WaveSawTool,
                         contentDescription = stringResource(R.string.unlock_bitrate_title),
+                        tint = AppColors().iconColor,
+                    )
+                },
+            )
+        }
+
+        item {
+            SwitchPreference(
+                title = stringResource(R.string.extend_into_notch_title),
+                subtitle = stringResource(R.string.extend_into_notch_description),
+                value = extendIntoNotch,
+                onValueChange = {
+                    extendIntoNotch = it
+                },
+                enabled = enabled,
+                icon = {
+                    Icon(
+                        imageVector = TablerIcons.Maximize,
+                        contentDescription = stringResource(R.string.extend_into_notch_title),
                         tint = AppColors().iconColor,
                     )
                 },

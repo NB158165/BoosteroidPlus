@@ -12,6 +12,8 @@
     <string name="resolution_description">Set the desired resolution for streaming. Higher values provide better image quality but require more bandwidth</string>
     <string name="aspect_ratio_title">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select the screen aspect ratio for streaming</string>
+    <string name="extend_into_notch_title">Extend Into Notch Area</string>
+    <string name="extend_into_notch_description">Allows content to display in the screen cutout area. Disable to keep UI elements away from the notch</string>
     <string name="app_restart_required">Force-Stop Boosteroid to apply</string>
 
     <string name="title_activity_crash">CrashActivity</string>

@@ -1,11 +1,16 @@
 package dev.marcelsoftware.boosteroidplus.xposed
 
+import android.app.Activity
 import android.app.AndroidAppHelper
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import android.widget.SeekBar
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import dev.marcelsoftware.boosteroidplus.BuildConfig
 import dev.marcelsoftware.boosteroidplus.ResolutionManager
 import dev.marcelsoftware.boosteroidplus.common.XAppPrefs
@@ -24,6 +29,8 @@ class Main : IXposedHookLoadPackage {
             get() = enabled && prefs.getBoolean(PrefKeys.UNLOCK_FPS, false)
         val unlockBitRate
             get() = enabled && prefs.getBoolean(PrefKeys.UNLOCK_BITRATE, false)
+        val extendOverNotch: Boolean
+            get() = enabled && prefs.getBoolean(PrefKeys.EXTEND_INTO_NOTCH, true)
         val resolution: Int
             get() = if (enabled) prefs.getInt(PrefKeys.RESOLUTION, 0) else -1
         val aspectRatio: Int
@@ -55,6 +62,7 @@ class Main : IXposedHookLoadPackage {
             hookBitrate()
             hookFrameRate(lpparam.classLoader)
             hookResolution(dexKitBridge, lpparam.classLoader)
+            hookNotch(lpparam.classLoader)
         }
     }
 }
@@ -199,6 +207,35 @@ private fun hookResolution(
 
             param.args[0] = "$modifiedWss&tv=1"
             Log.i(Main.TAG, "Set resolution to ${selectedResolution.first} × ${selectedResolution.second}")
+        }
+    }
+}
+
+private fun hookNotch(classLoader: ClassLoader) {
+    Log.d(Main.TAG, "Setting up notch display hooks")
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        Log.d(Main.TAG, "Skipping notch hooks - device API level too low (requires Android P or higher)")
+        return
+    }
+
+    hookMethod(
+        "com.boosteroid.streaming.UI.StreamActivity",
+        classLoader,
+        "onCreate",
+        Bundle::class.java,
+    ) {
+        after { params ->
+            val activity = params.thisObject as Activity
+
+            if (!Main.extendOverNotch) {
+                val oldMode = activity.window.attributes.layoutInDisplayCutoutMode
+                activity.window.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+                Log.i(Main.TAG, "Changed cutout mode from $oldMode to LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER")
+            } else {
+                Log.d(Main.TAG, "Using default cutout behavior - content can extend into notch area")
+            }
         }
     }
 }
