@@ -3,6 +3,7 @@ package dev.marcelsoftware.boosteroidplus.common
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -13,11 +14,39 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import de.robv.android.xposed.XSharedPreferences
 import dev.marcelsoftware.boosteroidplus.BuildConfig
+import dev.marcelsoftware.boosteroidplus.common.preferences.PrefKeys
+import dev.marcelsoftware.boosteroidplus.xposed.Main
 import kotlin.reflect.KProperty
 
 class XAppPrefs {
     companion object {
         fun isModuleEnabled() = false
+    }
+
+    private var enabled: Boolean? = null
+    private var unlockFps: Boolean? = null
+    private var unlockBitRate: Boolean? = null
+    private var extendIntoNotch: Boolean? = null
+
+    private var resolution: Int? = null
+    private var aspectRatio: Int? = null
+
+    private fun getTemporaryBooleanPreference(key: String): Boolean? {
+        return when (key) {
+            PrefKeys.ENABLED -> enabled
+            PrefKeys.UNLOCK_FPS -> unlockFps
+            PrefKeys.UNLOCK_BITRATE -> unlockBitRate
+            PrefKeys.EXTEND_INTO_NOTCH -> extendIntoNotch
+            else -> null
+        }
+    }
+
+    private fun getTemporaryIntPreference(key: String): Int? {
+        return when (key) {
+            PrefKeys.RESOLUTION -> resolution
+            PrefKeys.ASPECT_RATIO -> aspectRatio
+            else -> null
+        }
     }
 
     private val xSharedPreferences: XSharedPreferences = XSharedPreferences(BuildConfig.APPLICATION_ID, BuildConfig.APPLICATION_ID)
@@ -27,7 +56,8 @@ class XAppPrefs {
         defaultValue: Boolean,
     ): Boolean {
         xSharedPreferences.reload()
-        return xSharedPreferences.getBoolean(key, defaultValue)
+        val tempValue = getTemporaryBooleanPreference(key)
+        return tempValue ?: xSharedPreferences.getBoolean(key, defaultValue)
     }
 
     fun getInt(
@@ -35,7 +65,31 @@ class XAppPrefs {
         defaultValue: Int,
     ): Int {
         xSharedPreferences.reload()
-        return xSharedPreferences.getInt(key, defaultValue)
+        return getTemporaryIntPreference(key) ?: xSharedPreferences.getInt(key, defaultValue)
+    }
+
+    fun putBoolean(
+        key: String,
+        value: Boolean,
+    ) {
+        Log.d(Main.TAG, "Put boolean $key $value")
+        when (key) {
+            PrefKeys.ENABLED -> enabled = value
+            PrefKeys.UNLOCK_FPS -> unlockFps = value
+            PrefKeys.UNLOCK_BITRATE -> unlockBitRate = value
+            PrefKeys.EXTEND_INTO_NOTCH -> extendIntoNotch = value
+        }
+    }
+
+    fun putInt(
+        key: String,
+        value: Int,
+    ) {
+        Log.d(Main.TAG, "Put int $key $value")
+        when (key) {
+            PrefKeys.RESOLUTION -> resolution = value
+            PrefKeys.ASPECT_RATIO -> aspectRatio = value
+        }
     }
 }
 

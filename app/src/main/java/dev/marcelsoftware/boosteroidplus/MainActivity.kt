@@ -1,5 +1,7 @@
 package dev.marcelsoftware.boosteroidplus
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,6 +42,7 @@ import compose.icons.tablericons.AspectRatio
 import compose.icons.tablericons.Bolt
 import compose.icons.tablericons.DeviceDesktop
 import compose.icons.tablericons.Maximize
+import compose.icons.tablericons.Rocket
 import compose.icons.tablericons.WaveSawTool
 import dev.marcelsoftware.boosteroidplus.common.AppDialog
 import dev.marcelsoftware.boosteroidplus.common.AppDialogHeader
@@ -53,6 +57,7 @@ import dev.marcelsoftware.boosteroidplus.common.rememberAppCronDialogState
 import dev.marcelsoftware.boosteroidplus.common.rememberBooleanPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberBottomSheetHostState
 import dev.marcelsoftware.boosteroidplus.common.rememberIntPreference
+import dev.marcelsoftware.boosteroidplus.common.rememberPreferences
 import dev.marcelsoftware.boosteroidplus.common.rememberToastHostState
 import dev.marcelsoftware.boosteroidplus.ui.theme.AppColors
 import dev.marcelsoftware.boosteroidplus.ui.theme.BoosteroidTheme
@@ -75,13 +80,20 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    val preferences = rememberPreferences()
     var enabled by rememberBooleanPreference(PrefKeys.ENABLED, false)
+    var unlockFps by rememberBooleanPreference(PrefKeys.UNLOCK_FPS, false)
+    var unlockBitrate by rememberBooleanPreference(PrefKeys.UNLOCK_BITRATE, false)
+    var aspectRatioIndex by rememberIntPreference(PrefKeys.ASPECT_RATIO, -1)
+    var resolutionIndex by rememberIntPreference(PrefKeys.RESOLUTION, 0)
+    var extendIntoNotch by rememberBooleanPreference(PrefKeys.EXTEND_INTO_NOTCH, true)
 
     val appDialogState = rememberAppCronDialogState()
     val toastHostState = rememberToastHostState()
     val bottomSheetHostState = rememberBottomSheetHostState()
     val restartRequiredMessage = stringResource(R.string.app_restart_required)
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     if (!XAppPrefs.isModuleEnabled()) {
         val xposedNotActiveMessage = stringResource(R.string.xposed_not_active)
@@ -143,6 +155,32 @@ fun MainScreen() {
                 modifier = Modifier.shadow(elevation = 4.dp),
             )
         },
+        floatingActionButton = {
+            if (!XAppPrefs.isModuleEnabled()) {
+                FloatingActionButton(
+                    onClick = {
+                        val uri =
+                            Uri.Builder()
+                                .scheme("stream")
+                                .authority("boosteroid.mobile")
+                                .path("launch")
+                                .apply {
+                                    preferences.all.forEach { (key, value) ->
+                                        appendQueryParameter(key, value.toString())
+                                    }
+                                }
+                                .build()
+                        val intent = Intent(Intent.ACTION_VIEW, uri)
+                        context.startActivity(intent)
+                    },
+                ) {
+                    Icon(
+                        imageVector = TablerIcons.Rocket,
+                        contentDescription = null,
+                    )
+                }
+            }
+        },
     ) { paddingValues ->
         Surface(
             modifier =
@@ -153,6 +191,16 @@ fun MainScreen() {
             Options(
                 modifier = Modifier.fillMaxSize(),
                 enabled = enabled,
+                unlockFps = unlockFps,
+                onUnlockFpsChange = { unlockFps = it },
+                unlockBitrate = unlockBitrate,
+                onUnlockBitrateChange = { unlockBitrate = it },
+                aspectRatioIndex = aspectRatioIndex,
+                onAspectRatioChange = { aspectRatioIndex = it },
+                resolutionIndex = resolutionIndex,
+                onResolutionChange = { resolutionIndex = it },
+                extendIntoNotch = extendIntoNotch,
+                onExtendIntoNotchChange = { extendIntoNotch = it },
                 bottomSheetHostState = bottomSheetHostState,
             )
 
@@ -182,18 +230,22 @@ fun MainScreen() {
 fun Options(
     modifier: Modifier = Modifier,
     enabled: Boolean,
+    unlockFps: Boolean,
+    onUnlockFpsChange: (Boolean) -> Unit,
+    unlockBitrate: Boolean,
+    onUnlockBitrateChange: (Boolean) -> Unit,
+    aspectRatioIndex: Int,
+    onAspectRatioChange: (Int) -> Unit,
+    resolutionIndex: Int,
+    onResolutionChange: (Int) -> Unit,
+    extendIntoNotch: Boolean,
+    onExtendIntoNotchChange: (Boolean) -> Unit,
     bottomSheetHostState: BottomSheetHostState,
 ) {
     val context = LocalContext.current
     val resolutionManager = remember { ResolutionManager(context) }
 
-    var unlockFps by rememberBooleanPreference(PrefKeys.UNLOCK_FPS, false)
-    var unlockBitrate by rememberBooleanPreference(PrefKeys.UNLOCK_BITRATE, false)
-
     val aspectRatioOptions = listOf(null) + ResolutionManager.AspectRatio.entries
-    var aspectRatioIndex by rememberIntPreference(PrefKeys.ASPECT_RATIO, -1)
-
-    var extendIntoNotch by rememberBooleanPreference(PrefKeys.EXTEND_INTO_NOTCH, true)
 
     val selectedAspectRatio =
         remember(aspectRatioIndex) {
@@ -209,8 +261,6 @@ fun Options(
             resolutionManager.getResolutionsForAspectRatio(selectedAspectRatio)
         }
 
-    var resolutionIndex by rememberIntPreference(PrefKeys.RESOLUTION, 0)
-
     LaunchedEffect(availableResolutions) {
         val currentWidth =
             if (resolutionIndex >= 0 && resolutionIndex < availableResolutions.size) {
@@ -219,8 +269,13 @@ fun Options(
                 resolutionManager.nativeWidth
             }
 
-        resolutionIndex = availableResolutions.indices
-            .minByOrNull { abs(availableResolutions[it].first - currentWidth) } ?: 0
+        val newIndex =
+            availableResolutions.indices
+                .minByOrNull { abs(availableResolutions[it].first - currentWidth) } ?: 0
+
+        if (newIndex != resolutionIndex) {
+            onResolutionChange(newIndex)
+        }
     }
 
     LazyColumn(modifier = modifier) {
@@ -229,9 +284,7 @@ fun Options(
                 title = stringResource(R.string.unlock_fps_title),
                 subtitle = stringResource(R.string.unlock_fps_description),
                 value = unlockFps,
-                onValueChange = {
-                    unlockFps = it
-                },
+                onValueChange = onUnlockFpsChange,
                 enabled = enabled,
                 icon = {
                     Icon(
@@ -248,9 +301,7 @@ fun Options(
                 title = stringResource(R.string.unlock_bitrate_title),
                 subtitle = stringResource(R.string.unlock_bitrate_description),
                 value = unlockBitrate,
-                onValueChange = {
-                    unlockBitrate = it
-                },
+                onValueChange = onUnlockBitrateChange,
                 enabled = enabled,
                 icon = {
                     Icon(
@@ -267,9 +318,7 @@ fun Options(
                 title = stringResource(R.string.extend_into_notch_title),
                 subtitle = stringResource(R.string.extend_into_notch_description),
                 value = extendIntoNotch,
-                onValueChange = {
-                    extendIntoNotch = it
-                },
+                onValueChange = onExtendIntoNotchChange,
                 enabled = enabled,
                 icon = {
                     Icon(
@@ -291,11 +340,7 @@ fun Options(
                     val isNative = availableResolutions.indexOf(resolution) == 0
                     resolutionManager.getDisplayStringForResolution(resolution, isNative)
                 },
-                onOptionSelected = { index ->
-                    if (index != resolutionIndex) {
-                        resolutionIndex = index
-                    }
-                },
+                onOptionSelected = onResolutionChange,
                 enabled = enabled,
                 icon = {
                     Icon(
@@ -317,9 +362,7 @@ fun Options(
                 optionLabel = { it?.label ?: "Native" },
                 onOptionSelected = { index ->
                     val newIndex = if (index == 0) -1 else index - 1
-                    if (newIndex != aspectRatioIndex) {
-                        aspectRatioIndex = newIndex
-                    }
+                    onAspectRatioChange(newIndex)
                 },
                 enabled = enabled,
                 icon = {

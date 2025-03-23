@@ -16,6 +16,12 @@ Boosteroid+ is a tool to unlock advanced settings in the Boosteroid app, allowin
 2. Install **Boosteroid+**.
 3. Enable the module in **LSPosed Manager**.
 
+## Non Root Usage
+1. Install the Boosteroid app.
+2. Install **Boosteroid+**
+3. Patch the Boosteroid app with LSPosed
+4. Launch Boosteroid with the FAB button in **Boosteroid+**
+
 ## Credits
 
 - **Icons**: Icons used in this project are from [Tabler Icons](https://tabler.io/icons).

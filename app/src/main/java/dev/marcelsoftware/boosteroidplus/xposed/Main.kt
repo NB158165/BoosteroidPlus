@@ -2,6 +2,8 @@ package dev.marcelsoftware.boosteroidplus.xposed
 
 import android.app.Activity
 import android.app.AndroidAppHelper
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -21,7 +23,7 @@ import kotlin.text.Regex
 class Main : IXposedHookLoadPackage {
     companion object {
         const val TAG = "Boosteroid+"
-        private val prefs: XAppPrefs = XAppPrefs()
+        val prefs: XAppPrefs = XAppPrefs()
 
         val enabled
             get() = prefs.getBoolean(PrefKeys.ENABLED, false)
@@ -63,6 +65,7 @@ class Main : IXposedHookLoadPackage {
             hookFrameRate(lpparam.classLoader)
             hookResolution(dexKitBridge, lpparam.classLoader)
             hookNotch(lpparam.classLoader)
+            hookUri(lpparam.classLoader)
         }
     }
 }
@@ -163,13 +166,12 @@ private fun hookResolution(
 
     Log.d(Main.TAG, "Found ${foundMethods.size} methods for resolution hook")
 
-    if (Main.resolution == -1) {
-        Log.d(Main.TAG, "Native resolution selected, using app's default scaling")
-        return
-    }
-
     foundMethods.singleOrNull()?.hook(classLoader) {
         before { param ->
+            if (Main.resolution == -1) {
+                Log.d(Main.TAG, "Native resolution selected, using app's default scaling")
+                return@before
+            }
             val context = AndroidAppHelper.currentApplication().applicationContext
             val resolutionManager = ResolutionManager(context)
 
@@ -236,6 +238,46 @@ private fun hookNotch(classLoader: ClassLoader) {
             } else {
                 Log.d(Main.TAG, "Using default cutout behavior - content can extend into notch area")
             }
+        }
+    }
+}
+
+fun hookUri(classLoader: ClassLoader) {
+    hookMethod("com.boosteroid.streaming.UI.StartActivity", classLoader, "onCreate", Bundle::class.java) {
+        after { params ->
+            val activity = params.thisObject as Activity
+            val intent = activity.intent
+            if (Intent.ACTION_VIEW == intent.action) {
+                val data = intent.data ?: return@after
+
+                handleBooleanQueryParam(data, PrefKeys.ENABLED)
+                handleBooleanQueryParam(data, PrefKeys.UNLOCK_FPS)
+                handleBooleanQueryParam(data, PrefKeys.UNLOCK_BITRATE)
+                handleBooleanQueryParam(data, PrefKeys.EXTEND_INTO_NOTCH)
+
+                handleIntQueryParam(data, PrefKeys.RESOLUTION)
+                handleIntQueryParam(data, PrefKeys.ASPECT_RATIO)
+            }
+        }
+    }
+}
+
+private fun handleBooleanQueryParam(
+    data: Uri,
+    prefKey: String,
+) {
+    data.getQueryParameter(prefKey)?.let { param ->
+        Main.prefs.putBoolean(prefKey, param.equals("true", ignoreCase = true))
+    }
+}
+
+private fun handleIntQueryParam(
+    data: Uri,
+    prefKey: String,
+) {
+    data.getQueryParameter(prefKey)?.let { param ->
+        param.toIntOrNull()?.let { value ->
+            Main.prefs.putInt(prefKey, value)
         }
     }
 }
