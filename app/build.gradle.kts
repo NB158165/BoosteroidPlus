@@ -3,7 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ktlint)
-    kotlin("kapt")
+    alias(libs.plugins.versioning)
+}
+
+androidGitVersion {
+    baseCode = 100000
+    tagPattern = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
 }
 
 android {
@@ -14,8 +19,10 @@ android {
         applicationId = "dev.marcelsoftware.boosteroidplus"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        defaultConfig {
+            versionCode = androidGitVersion.code()
+            versionName = androidGitVersion.name()
+        }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,6 +44,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        allWarningsAsErrors = false
     }
     buildFeatures {
         compose = true
@@ -74,4 +82,9 @@ dependencies {
     implementation(libs.composeIcons)
 
     ktlint(libs.ktlint.compose)
+}
+
+ktlint {
+    android.set(true)
+    outputColorName.set("RED")
 }

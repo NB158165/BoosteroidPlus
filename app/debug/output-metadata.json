@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "dev.marcelsoftware.boosteroidplus",
+  "variantName": "debug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 100000,
+      "versionName": "untagged-3-94d09b3-main-dirty",
+      "outputFile": "app-debug.apk"
+    }
+  ],
+  "elementType": "File",
+  "minSdkVersionForDexing": 23
+}
