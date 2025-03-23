@@ -2,6 +2,8 @@
 
 Boosteroid+ is a tool to unlock advanced settings in the Boosteroid app, allowing users to enhance their streaming experience by unlocking features like increased frame rate, higher bitrate, and custom resolution options.
 
+![App Screenshot](screenshots/app.png)
+
 ## Features
 
 - **Unlock Frame Rate**: Set the maximum frame rate to match your display's refresh rate.
