@@ -25,4 +25,7 @@
     <string name="crash_no_details">No error details available</string>
     <string name="crash_copied_to_clipboard">Copied to clipboard</string>
     <string name="crash_version_format">Boosteroid+ v%s</string>
+
+
+    <string name="xposed_not_active">Xposed Module is currently inactive. Please enable it in the Xposed Framework settings for your changes to take effect.</string>
 </resources>

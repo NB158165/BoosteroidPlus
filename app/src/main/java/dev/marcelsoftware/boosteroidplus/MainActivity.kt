@@ -22,12 +22,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -37,7 +33,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.cioccarellia.ksprefs.dynamic
 import compose.icons.TablerIcons
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.AspectRatio
@@ -49,11 +44,14 @@ import dev.marcelsoftware.boosteroidplus.common.AppDialogHeader
 import dev.marcelsoftware.boosteroidplus.common.BottomSheetHost
 import dev.marcelsoftware.boosteroidplus.common.BottomSheetHostState
 import dev.marcelsoftware.boosteroidplus.common.ToastHost
+import dev.marcelsoftware.boosteroidplus.common.XAppPrefs
 import dev.marcelsoftware.boosteroidplus.common.preferences.PickerPreference
 import dev.marcelsoftware.boosteroidplus.common.preferences.PrefKeys
 import dev.marcelsoftware.boosteroidplus.common.preferences.SwitchPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberAppCronDialogState
+import dev.marcelsoftware.boosteroidplus.common.rememberBooleanPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberBottomSheetHostState
+import dev.marcelsoftware.boosteroidplus.common.rememberIntPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberToastHostState
 import dev.marcelsoftware.boosteroidplus.ui.theme.AppColors
 import dev.marcelsoftware.boosteroidplus.ui.theme.BoosteroidTheme
@@ -61,7 +59,6 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -77,8 +74,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
-    var enabledPref by App.prefs.dynamic("enabled", false)
-    var enabled by remember { mutableStateOf(enabledPref) }
+    var enabled by rememberBooleanPreference(PrefKeys.ENABLED, false)
 
     val appDialogState = rememberAppCronDialogState()
     val toastHostState = rememberToastHostState()
@@ -86,8 +82,13 @@ fun MainScreen() {
     val restartRequiredMessage = stringResource(R.string.app_restart_required)
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(enabled) {
-        enabledPref = enabled
+    if (!XAppPrefs.isModuleEnabled()) {
+        val xposedNotActiveMessage = stringResource(R.string.xposed_not_active)
+        LaunchedEffect(Unit) {
+            coroutineScope.launch {
+                toastHostState.showToast(xposedNotActiveMessage, TablerIcons.AlertTriangle)
+            }
+        }
     }
 
     Scaffold(
@@ -186,14 +187,14 @@ fun Options(
     val context = LocalContext.current
     val resolutionManager = remember { ResolutionManager(context) }
 
-    var unlockFpsPref by App.prefs.dynamic(PrefKeys.UNLOCK_FPS, false)
-    var unlockBitratePref by App.prefs.dynamic(PrefKeys.UNLOCK_BITRATE, false)
-    var unlockFps by remember { mutableStateOf(unlockFpsPref) }
-    var unlockBitrate by remember { mutableStateOf(unlockBitratePref) }
+//    var unlockFpsPref by App.prefs.dynamic(PrefKeys.UNLOCK_FPS, false)
+//    var unlockBitratePref by App.prefs.dynamic(PrefKeys.UNLOCK_BITRATE, false)
+    var unlockFps by rememberBooleanPreference(PrefKeys.UNLOCK_FPS, false)
+    var unlockBitrate by rememberBooleanPreference(PrefKeys.UNLOCK_BITRATE, false)
 
     val aspectRatioOptions = listOf(null) + ResolutionManager.AspectRatio.entries
-    var aspectRatioPref by App.prefs.dynamic(PrefKeys.ASPECT_RATIO, -1)
-    var aspectRatioIndex by remember { mutableIntStateOf(aspectRatioPref) }
+//    var aspectRatioPref by App.prefs.dynamic(PrefKeys.ASPECT_RATIO, -1)
+    var aspectRatioIndex by rememberIntPreference(PrefKeys.ASPECT_RATIO, -1)
 
     val selectedAspectRatio =
         remember(aspectRatioIndex) {
@@ -209,27 +210,19 @@ fun Options(
             resolutionManager.getResolutionsForAspectRatio(selectedAspectRatio)
         }
 
-    var resolutionPref by App.prefs.dynamic(PrefKeys.RESOLUTION, 0)
-    var resolutionIndex by remember { mutableIntStateOf(0) }
+    var resolutionIndex by rememberIntPreference(PrefKeys.RESOLUTION, 0)
 
     LaunchedEffect(availableResolutions) {
         val currentWidth =
-            if (resolutionPref >= 0 && resolutionPref < availableResolutions.size) {
-                availableResolutions[resolutionPref].first
+            if (resolutionIndex >= 0 && resolutionIndex < availableResolutions.size) {
+                availableResolutions[resolutionIndex].first
             } else {
                 resolutionManager.nativeWidth
             }
 
         resolutionIndex = availableResolutions.indices
             .minByOrNull { abs(availableResolutions[it].first - currentWidth) } ?: 0
-
-        resolutionPref = resolutionIndex
     }
-
-    LaunchedEffect(unlockFps) { unlockFpsPref = unlockFps }
-    LaunchedEffect(unlockBitrate) { unlockBitratePref = unlockBitrate }
-    LaunchedEffect(resolutionIndex) { resolutionPref = resolutionIndex }
-    LaunchedEffect(aspectRatioIndex) { aspectRatioPref = aspectRatioIndex }
 
     LazyColumn(modifier = modifier) {
         item {

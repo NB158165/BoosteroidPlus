@@ -4,47 +4,48 @@ import android.app.AndroidAppHelper
 import android.util.Log
 import android.widget.SeekBar
 import de.robv.android.xposed.IXposedHookLoadPackage
-import de.robv.android.xposed.IXposedHookZygoteInit
-import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import dev.marcelsoftware.boosteroidplus.BuildConfig
 import dev.marcelsoftware.boosteroidplus.ResolutionManager
+import dev.marcelsoftware.boosteroidplus.common.XAppPrefs
 import dev.marcelsoftware.boosteroidplus.common.preferences.PrefKeys
 import org.luckypray.dexkit.DexKitBridge
 import kotlin.text.Regex
 
-class Main : IXposedHookLoadPackage, IXposedHookZygoteInit {
+class Main : IXposedHookLoadPackage {
     companion object {
         const val TAG = "Boosteroid+"
-        val prefs: XSharedPreferences =
-            XSharedPreferences(
-                BuildConfig.APPLICATION_ID,
-                "ksp_default-${BuildConfig.APPLICATION_ID}",
-            )
+        private val prefs: XAppPrefs = XAppPrefs()
 
         val enabled
-            get() = prefs.getKsBoolean(PrefKeys.ENABLED, false)
+            get() = prefs.getBoolean(PrefKeys.ENABLED, false)
         val unlockFrameRate
-            get() = enabled && prefs.getKsBoolean(PrefKeys.UNLOCK_FPS, false)
+            get() = enabled && prefs.getBoolean(PrefKeys.UNLOCK_FPS, false)
         val unlockBitRate
-            get() = enabled && prefs.getKsBoolean(PrefKeys.UNLOCK_BITRATE, false)
+            get() = enabled && prefs.getBoolean(PrefKeys.UNLOCK_BITRATE, false)
         val resolution: Int
-            get() = if (enabled) prefs.getKsInt(PrefKeys.RESOLUTION, 0) else -1
+            get() = if (enabled) prefs.getInt(PrefKeys.RESOLUTION, 0) else -1
         val aspectRatio: Int
-            get() = if (enabled) prefs.getKsInt(PrefKeys.ASPECT_RATIO, -1) else -1
+            get() = if (enabled) prefs.getInt(PrefKeys.ASPECT_RATIO, -1) else -1
 
         init {
             System.loadLibrary("dexkit")
         }
     }
 
-    override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
-        Log.d(TAG, "Initialized with preferences at: ${prefs.file.absolutePath}")
-        Log.d(TAG, enabled.toString())
-    }
-
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
+        if (lpparam.packageName == BuildConfig.APPLICATION_ID) {
+            hookMethod(
+                "dev.marcelsoftware.boosteroidplus.common.XAppPrefs\$Companion",
+                lpparam.classLoader,
+                "isModuleEnabled",
+            ) {
+                before { params ->
+                    params.result = true
+                }
+            }
+        }
         if (lpparam.packageName != "com.boosteroid.streaming") return
 
         Log.i(TAG, "Handling package: ${lpparam.packageName}")
@@ -201,13 +202,3 @@ private fun hookResolution(
         }
     }
 }
-
-private fun XSharedPreferences.getKsBoolean(
-    key: String,
-    default: Boolean,
-) = this.getString(key, default.toString()) != "false"
-
-private fun XSharedPreferences.getKsInt(
-    key: String,
-    default: Int,
-) = this.getString(key, default.toString())?.toIntOrNull() ?: default

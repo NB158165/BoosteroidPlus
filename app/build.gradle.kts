@@ -75,7 +75,6 @@ dependencies {
     implementation(libs.toolbox.dynamicTheme)
     implementation(libs.toolbox.systemuicontroller)
     implementation(libs.toolbox.modalsheet)
-    implementation(libs.ksprefs)
     compileOnly(libs.xposed.legacy)
     implementation(libs.dexkit)
     implementation(libs.androidx.splashscreen)
