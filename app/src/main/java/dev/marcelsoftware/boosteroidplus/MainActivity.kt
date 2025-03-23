@@ -152,11 +152,6 @@ fun MainScreen() {
             Options(
                 modifier = Modifier.fillMaxSize(),
                 enabled = enabled,
-                onModified = {
-                    coroutineScope.launch {
-                        toastHostState.showToast(restartRequiredMessage, icon = TablerIcons.AlertTriangle)
-                    }
-                },
                 bottomSheetHostState = bottomSheetHostState,
             )
 
@@ -166,6 +161,11 @@ fun MainScreen() {
                     AppDialogHeader(
                         title = stringResource(R.string.tweaks_warning_title),
                     )
+                },
+                onDismissRequest = {
+                    coroutineScope.launch {
+                        toastHostState.showToast(restartRequiredMessage, TablerIcons.AlertTriangle)
+                    }
                 },
             ) {
                 Text(text = stringResource(R.string.tweaks_warning_message))
@@ -181,19 +181,15 @@ fun MainScreen() {
 fun Options(
     modifier: Modifier = Modifier,
     enabled: Boolean,
-    onModified: () -> Unit,
     bottomSheetHostState: BottomSheetHostState,
 ) {
     val context = LocalContext.current
     val resolutionManager = remember { ResolutionManager(context) }
 
-//    var unlockFpsPref by App.prefs.dynamic(PrefKeys.UNLOCK_FPS, false)
-//    var unlockBitratePref by App.prefs.dynamic(PrefKeys.UNLOCK_BITRATE, false)
     var unlockFps by rememberBooleanPreference(PrefKeys.UNLOCK_FPS, false)
     var unlockBitrate by rememberBooleanPreference(PrefKeys.UNLOCK_BITRATE, false)
 
     val aspectRatioOptions = listOf(null) + ResolutionManager.AspectRatio.entries
-//    var aspectRatioPref by App.prefs.dynamic(PrefKeys.ASPECT_RATIO, -1)
     var aspectRatioIndex by rememberIntPreference(PrefKeys.ASPECT_RATIO, -1)
 
     val selectedAspectRatio =
@@ -232,7 +228,6 @@ fun Options(
                 value = unlockFps,
                 onValueChange = {
                     unlockFps = it
-                    onModified()
                 },
                 enabled = enabled,
                 icon = {
@@ -252,7 +247,6 @@ fun Options(
                 value = unlockBitrate,
                 onValueChange = {
                     unlockBitrate = it
-                    onModified()
                 },
                 enabled = enabled,
                 icon = {
@@ -278,7 +272,6 @@ fun Options(
                 onOptionSelected = { index ->
                     if (index != resolutionIndex) {
                         resolutionIndex = index
-                        onModified()
                     }
                 },
                 enabled = enabled,
@@ -304,7 +297,6 @@ fun Options(
                     val newIndex = if (index == 0) -1 else index - 1
                     if (newIndex != aspectRatioIndex) {
                         aspectRatioIndex = newIndex
-                        onModified()
                     }
                 },
                 enabled = enabled,

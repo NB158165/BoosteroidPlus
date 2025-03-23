@@ -25,12 +25,18 @@ class XAppPrefs {
     fun getBoolean(
         key: String,
         defaultValue: Boolean,
-    ) = xSharedPreferences.getBoolean(key, defaultValue)
+    ): Boolean {
+        xSharedPreferences.reload()
+        return xSharedPreferences.getBoolean(key, defaultValue)
+    }
 
     fun getInt(
         key: String,
         defaultValue: Int,
-    ) = xSharedPreferences.getInt(key, defaultValue)
+    ): Int {
+        xSharedPreferences.reload()
+        return xSharedPreferences.getInt(key, defaultValue)
+    }
 }
 
 @Stable
