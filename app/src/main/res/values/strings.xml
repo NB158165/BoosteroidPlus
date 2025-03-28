@@ -14,6 +14,9 @@
     <string name="aspect_ratio_description">Select the screen aspect ratio for streaming</string>
     <string name="extend_into_notch_title">Extend Into Notch Area</string>
     <string name="extend_into_notch_description">Allows content to display in the screen cutout area. Disable to keep UI elements away from the notch</string>
+    <string name="target_version_title">Boosteroid Selection</string>
+    <string name="target_version_description">Select which Boosteroid you want to apply changes for: Standard or TV</string>
+
     <string name="app_restart_required">Force-Stop Boosteroid to apply</string>
 
     <string name="title_activity_crash">CrashActivity</string>

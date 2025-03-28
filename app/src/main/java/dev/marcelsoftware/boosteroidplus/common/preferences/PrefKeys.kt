@@ -7,4 +7,5 @@ object PrefKeys {
     const val ENABLED = "enabled"
     const val ASPECT_RATIO = "aspect_ratio"
     const val EXTEND_INTO_NOTCH = "extend_into_notch"
+    const val TARGET_APP = "target_app"
 }

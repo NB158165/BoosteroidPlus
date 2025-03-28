@@ -151,6 +151,45 @@ class IntPreference(
     override fun component2(): (Int) -> Unit = { value = it }
 }
 
+@Stable
+class StringPreference(
+    private val preferences: SharedPreferences,
+    private val key: String,
+    private val defaultValue: String,
+) : MutableState<String> {
+    private val state = mutableStateOf(preferences.getString(key, defaultValue))
+
+    operator fun getValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+    ): String {
+        return value
+    }
+
+    operator fun setValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+        newValue: String,
+    ) {
+        value = newValue
+    }
+
+    override var value: String
+        get() = state.value!!
+        set(newValue) {
+            if (state.value != newValue) {
+                preferences.edit {
+                    putString(key, newValue)
+                }
+                state.value = newValue
+            }
+        }
+
+    override fun component1(): String = value
+
+    override fun component2(): (String) -> Unit = { value = it }
+}
+
 @Composable
 @SuppressLint("WorldReadableFiles")
 fun rememberPreferences(): SharedPreferences {
@@ -183,5 +222,16 @@ fun rememberIntPreference(
     val prefs = rememberPreferences()
     return remember(key) {
         IntPreference(prefs, key, defaultValue)
+    }
+}
+
+@Composable
+fun rememberStringPreference(
+    key: String,
+    defaultValue: String = "",
+): StringPreference {
+    val prefs = rememberPreferences()
+    return remember(key) {
+        StringPreference(prefs, key, defaultValue)
     }
 }

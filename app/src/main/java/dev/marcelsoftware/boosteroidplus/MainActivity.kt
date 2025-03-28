@@ -58,6 +58,7 @@ import dev.marcelsoftware.boosteroidplus.common.rememberBooleanPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberBottomSheetHostState
 import dev.marcelsoftware.boosteroidplus.common.rememberIntPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberPreferences
+import dev.marcelsoftware.boosteroidplus.common.rememberStringPreference
 import dev.marcelsoftware.boosteroidplus.common.rememberToastHostState
 import dev.marcelsoftware.boosteroidplus.ui.theme.AppColors
 import dev.marcelsoftware.boosteroidplus.ui.theme.BoosteroidTheme
@@ -87,6 +88,7 @@ fun MainScreen() {
     var aspectRatioIndex by rememberIntPreference(PrefKeys.ASPECT_RATIO, -1)
     var resolutionIndex by rememberIntPreference(PrefKeys.RESOLUTION, 0)
     var extendIntoNotch by rememberBooleanPreference(PrefKeys.EXTEND_INTO_NOTCH, true)
+    var targetApplication by rememberStringPreference(PrefKeys.TARGET_APP, "Standard")
 
     val appDialogState = rememberAppCronDialogState()
     val toastHostState = rememberToastHostState()
@@ -162,7 +164,7 @@ fun MainScreen() {
                         val uri =
                             Uri.Builder()
                                 .scheme("stream")
-                                .authority("boosteroid.mobile")
+                                .authority(if (targetApplication == "Standard") "boosteroid.mobile" else "boosteroid.tv")
                                 .path("launch")
                                 .apply {
                                     preferences.all.forEach { (key, value) ->
@@ -202,6 +204,8 @@ fun MainScreen() {
                 extendIntoNotch = extendIntoNotch,
                 onExtendIntoNotchChange = { extendIntoNotch = it },
                 bottomSheetHostState = bottomSheetHostState,
+                targetApplication = targetApplication,
+                onTargetApplicationChange = { targetApplication = it },
             )
 
             AppDialog(
@@ -240,6 +244,8 @@ fun Options(
     onResolutionChange: (Int) -> Unit,
     extendIntoNotch: Boolean,
     onExtendIntoNotchChange: (Boolean) -> Unit,
+    targetApplication: String,
+    onTargetApplicationChange: (String) -> Unit,
     bottomSheetHostState: BottomSheetHostState,
 ) {
     val context = LocalContext.current
@@ -279,6 +285,32 @@ fun Options(
     }
 
     LazyColumn(modifier = modifier) {
+        val targets = mutableListOf("Standard", "TV")
+
+        if (!XAppPrefs.isModuleEnabled()) {
+            item {
+                PickerPreference(
+                    title = stringResource(R.string.target_version_title),
+                    subtitle = stringResource(R.string.target_version_description),
+                    selectedIndex = targets.indexOf(targetApplication),
+                    options = targets,
+                    optionLabel = { it },
+                    onOptionSelected = {
+                        onTargetApplicationChange(targets[it])
+                    },
+                    enabled = true,
+                    icon = {
+                        Icon(
+                            imageVector = TablerIcons.AspectRatio,
+                            contentDescription = stringResource(R.string.aspect_ratio_title),
+                            tint = AppColors().iconColor,
+                        )
+                    },
+                    bottomSheetHostState = bottomSheetHostState,
+                )
+            }
+        }
+
         item {
             SwitchPreference(
                 title = stringResource(R.string.unlock_fps_title),
