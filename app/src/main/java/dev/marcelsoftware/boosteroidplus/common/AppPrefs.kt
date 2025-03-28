@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AndroidAppHelper
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -15,8 +14,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import de.robv.android.xposed.XSharedPreferences
 import dev.marcelsoftware.boosteroidplus.BuildConfig
-import dev.marcelsoftware.boosteroidplus.common.preferences.PrefKeys
-import dev.marcelsoftware.boosteroidplus.xposed.Main
 import kotlin.reflect.KProperty
 
 class XAppPrefs {
@@ -27,7 +24,7 @@ class XAppPrefs {
     private var isRootless: Boolean = false
 
     private fun getRootlessSharedPreferences(): SharedPreferences {
-        return AndroidAppHelper.currentApplication().applicationContext.getSharedPreferences("boosteroid_plus", Context.MODE_PRIVATE);
+        return AndroidAppHelper.currentApplication().applicationContext.getSharedPreferences("boosteroid_plus", Context.MODE_PRIVATE)
     }
 
     private val xSharedPreferences: XSharedPreferences = XSharedPreferences(BuildConfig.APPLICATION_ID, BuildConfig.APPLICATION_ID)
@@ -37,7 +34,14 @@ class XAppPrefs {
         defaultValue: Boolean,
     ): Boolean {
         xSharedPreferences.reload()
-        return if (isRootless) getRootlessSharedPreferences().getBoolean(key, defaultValue) else xSharedPreferences.getBoolean(key, defaultValue)
+        return if (isRootless) {
+            getRootlessSharedPreferences().getBoolean(
+                key,
+                defaultValue,
+            )
+        } else {
+            xSharedPreferences.getBoolean(key, defaultValue)
+        }
     }
 
     fun getInt(
