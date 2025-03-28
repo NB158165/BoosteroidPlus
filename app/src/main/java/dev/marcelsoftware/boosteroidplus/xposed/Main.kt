@@ -38,6 +38,10 @@ class Main : IXposedHookLoadPackage {
         val aspectRatio: Int
             get() = if (enabled) prefs.getInt(PrefKeys.ASPECT_RATIO, -1) else -1
 
+        var streamActivity: String = "com.boosteroid.streaming.UI.StreamActivity"
+        var startActivity: String = "com.boosteroid.streaming.UI.StartActivity"
+        var packageName: String = "com.boosteroid.streaming"
+
         init {
             System.loadLibrary("dexkit")
         }
@@ -55,7 +59,14 @@ class Main : IXposedHookLoadPackage {
                 }
             }
         }
-        if (lpparam.packageName != "com.boosteroid.streaming") return
+        if (!lpparam.packageName.startsWith("com.boosteroid")) return
+
+        if (lpparam.packageName == "com.boosteroidtv.streaming") {
+            streamActivity = "com.boosteroidtv.streaming.UI.tv.StreamActivity"
+            startActivity = "com.boosteroidtv.streamcom.boosteroidtv.streaming.network.wss.modeling.UI.tv.StartActivity"
+        }
+
+        packageName = lpparam.packageName
 
         Log.i(TAG, "Handling package: ${lpparam.packageName}")
 
@@ -104,7 +115,7 @@ private fun hookFrameRate(classLoader: ClassLoader) {
     Log.d(Main.TAG, "Setting up frame rate hooks")
 
     hookMethod(
-        "com.boosteroid.streaming.network.wss.model.ParamsModel",
+        "${Main.packageName}.network.wss.model.ParamsModel",
         classLoader,
         "setBitrate_max",
         Int::class.java,
@@ -222,7 +233,7 @@ private fun hookNotch(classLoader: ClassLoader) {
     }
 
     hookMethod(
-        "com.boosteroid.streaming.UI.StreamActivity",
+        Main.streamActivity,
         classLoader,
         "onCreate",
         Bundle::class.java,
@@ -243,7 +254,7 @@ private fun hookNotch(classLoader: ClassLoader) {
 }
 
 fun hookUri(classLoader: ClassLoader) {
-    hookMethod("com.boosteroid.streaming.UI.StartActivity", classLoader, "onCreate", Bundle::class.java) {
+    hookMethod(Main.startActivity, classLoader, "onCreate", Bundle::class.java) {
         after { params ->
             val activity = params.thisObject as Activity
             val intent = activity.intent
