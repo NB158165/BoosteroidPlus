@@ -1,6 +1,7 @@
 package dev.marcelsoftware.boosteroidplus.common
 
 import android.annotation.SuppressLint
+import android.app.AndroidAppHelper
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
@@ -23,30 +24,10 @@ class XAppPrefs {
         fun isModuleEnabled() = false
     }
 
-    private var enabled: Boolean? = null
-    private var unlockFps: Boolean? = null
-    private var unlockBitRate: Boolean? = null
-    private var extendIntoNotch: Boolean? = null
+    private var isRootless: Boolean = false
 
-    private var resolution: Int? = null
-    private var aspectRatio: Int? = null
-
-    private fun getTemporaryBooleanPreference(key: String): Boolean? {
-        return when (key) {
-            PrefKeys.ENABLED -> enabled
-            PrefKeys.UNLOCK_FPS -> unlockFps
-            PrefKeys.UNLOCK_BITRATE -> unlockBitRate
-            PrefKeys.EXTEND_INTO_NOTCH -> extendIntoNotch
-            else -> null
-        }
-    }
-
-    private fun getTemporaryIntPreference(key: String): Int? {
-        return when (key) {
-            PrefKeys.RESOLUTION -> resolution
-            PrefKeys.ASPECT_RATIO -> aspectRatio
-            else -> null
-        }
+    private fun getRootlessSharedPreferences(): SharedPreferences {
+        return AndroidAppHelper.currentApplication().applicationContext.getSharedPreferences("boosteroid_plus", Context.MODE_PRIVATE);
     }
 
     private val xSharedPreferences: XSharedPreferences = XSharedPreferences(BuildConfig.APPLICATION_ID, BuildConfig.APPLICATION_ID)
@@ -56,8 +37,7 @@ class XAppPrefs {
         defaultValue: Boolean,
     ): Boolean {
         xSharedPreferences.reload()
-        val tempValue = getTemporaryBooleanPreference(key)
-        return tempValue ?: xSharedPreferences.getBoolean(key, defaultValue)
+        return if (isRootless) getRootlessSharedPreferences().getBoolean(key, defaultValue) else xSharedPreferences.getBoolean(key, defaultValue)
     }
 
     fun getInt(
@@ -65,19 +45,16 @@ class XAppPrefs {
         defaultValue: Int,
     ): Int {
         xSharedPreferences.reload()
-        return getTemporaryIntPreference(key) ?: xSharedPreferences.getInt(key, defaultValue)
+        return if (isRootless) getRootlessSharedPreferences().getInt(key, defaultValue) else xSharedPreferences.getInt(key, defaultValue)
     }
 
     fun putBoolean(
         key: String,
         value: Boolean,
     ) {
-        Log.d(Main.TAG, "Put boolean $key $value")
-        when (key) {
-            PrefKeys.ENABLED -> enabled = value
-            PrefKeys.UNLOCK_FPS -> unlockFps = value
-            PrefKeys.UNLOCK_BITRATE -> unlockBitRate = value
-            PrefKeys.EXTEND_INTO_NOTCH -> extendIntoNotch = value
+        isRootless = true
+        getRootlessSharedPreferences().edit(commit = true) {
+            putBoolean(key, value)
         }
     }
 
@@ -85,10 +62,9 @@ class XAppPrefs {
         key: String,
         value: Int,
     ) {
-        Log.d(Main.TAG, "Put int $key $value")
-        when (key) {
-            PrefKeys.RESOLUTION -> resolution = value
-            PrefKeys.ASPECT_RATIO -> aspectRatio = value
+        isRootless = true
+        getRootlessSharedPreferences().edit(commit = true) {
+            putInt(key, value)
         }
     }
 }
